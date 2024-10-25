@@ -1,4 +1,4 @@
-import { Box, Button, Input, InputGroup, InputLeftElement, Modal, ModalBody, ModalCloseButton, ModalContent, ModalHeader, ModalOverlay, VStack } from "@chakra-ui/react";
+import { Box, Button, Input, InputGroup, InputLeftElement, LightMode, Modal, ModalBody, ModalCloseButton, ModalContent, ModalHeader, ModalOverlay, VStack } from "@chakra-ui/react";
 import { SiCryptpad, SiEducative } from "react-icons/si";
 import SocialLogin from "./SocialLogin";
 
@@ -29,7 +29,7 @@ export default function LoginModal({isOpen, onClose}: LoginModalProps){
                   <Input variant={"outline"} placeholder="Password"/>
                 </InputGroup>
               </VStack>
-              <Button mt={4} colorScheme="yellow" width={"100%"}>Log in</Button>
+              <LightMode><Button mt={4} colorScheme="yellow" width={"100%"}>Log in</Button></LightMode>
               <SocialLogin/>
             </ModalBody>
           </ModalContent>
