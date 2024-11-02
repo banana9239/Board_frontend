@@ -9,7 +9,7 @@ import SignUpModal from './SignUpModal'
 export default function Header() {
     const {isOpen:isLoginOpen, onClose:onLoginClose, onOpen:onLoginOpen} = useDisclosure();
     const {isOpen:isSignupOpen, onClose:onSignupClose, onOpen:onSignupOpen} = useDisclosure();
-    const {colorMode, toggleColorMode} = useColorMode();
+    const {toggleColorMode} = useColorMode();
     const Icon = useColorModeValue(PiBlueprintFill, PiBlueprintLight);
     
     return (
