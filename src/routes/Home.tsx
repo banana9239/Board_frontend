@@ -34,8 +34,6 @@ export default function Home() {
     queryFn: getPosts
   });
   
-
-  
   return (
     <Box>
       {!largeLoding && <CategoryList largeData={largeData} mediumData={mediumData} smallData={smallData} boardData={boardData}/> }
