@@ -7,37 +7,45 @@ import PostList from "../components/PostList";
 
 
 export default function Home() {  
-  const { largePk, mediumPk, smallPk, boardPk } = useParams();
+  const { loadLargePk, loadMediumPk, loadSmallPk, loadBoardPk } = useParams();
   
   const {isLoading:largeLoding, data:largeData} = useQuery({
     queryKey: ['largeCategories'], 
     queryFn: getLargeCategories
   });
+  const largePk = loadLargePk || (largeData && largeData.length > 0 ? largeData[0].id : null);
 
-  const {isLoading:mediumLoding,data:mediumData} = useQuery({
+  const {data:mediumData} = useQuery({
     queryKey: ['mediumCategories', largePk], 
-    queryFn: getMediumCategories
+    queryFn: getMediumCategories,
+    enabled: !!largePk
   });
-  
-  const {isLoading:smallLoding,data:smallData} = useQuery({
+  const mediumPk = loadMediumPk || (mediumData && mediumData.length > 0 ? mediumData[0].id : null);
+
+  const {data:smallData} = useQuery({
     queryKey: ['smallCategories', largePk, mediumPk], 
-    queryFn: getSmallCategories
+    queryFn: getSmallCategories,
+    enabled: !!mediumPk
   });
+  const smallPk = loadSmallPk || (smallData && smallData.length > 0 ? smallData[0].id : null);
 
-  const {isLoading:boardLoading,data:boardData} = useQuery({
+  const {data:boardData} = useQuery({
     queryKey: ['boards', largePk, mediumPk, smallPk], 
-    queryFn: getboards
+    queryFn: getboards,
+    enabled: !!smallPk
   });
+  const boardPk = loadBoardPk || (boardData && boardData.length > 0 ? boardData[0].id : null);
 
-  const {isLoading:postLoading,data:postData} = useQuery({
+  const {data:postData} = useQuery({
     queryKey: ['posts', largePk, mediumPk, smallPk, boardPk], 
-    queryFn: getPosts
+    queryFn: getPosts,
+    enabled: !!boardPk
   });
   
   return (
     <Box>
       {!largeLoding && <CategoryList largeData={largeData} mediumData={mediumData} smallData={smallData} boardData={boardData}/> }
-      {!postLoading && postData && <PostList data={postData}/>}
+      <PostList data={postData}/>
     </Box>
   );
 }

@@ -1,6 +1,7 @@
 import { Box, Button, HStack, Icon, Text, Textarea, VStack } from '@chakra-ui/react';
 import { BsPersonCircle } from "react-icons/bs";
 import { HiOutlineReply } from "react-icons/hi";
+import useUser from '../lib/useUser';
 
 interface IAuthorProps {
     name: string,
@@ -29,6 +30,8 @@ export default function Comment(
     }:{
         commentData:ICommentProps[]
     }) {
+
+    const {user, userLoading} = useUser();
     
     return (
             <Box>
@@ -43,10 +46,12 @@ export default function Comment(
                                         <Text>{`${comment.created_at.substring(0,10)}, ${comment.created_at.substring(11,19)}`}</Text>
                                     </Box>
                                 </HStack>
+                                {user && userLoading === false && user.username === comment.author.username && (
                                 <Box ml={"auto"}>
                                     <Button height={7} fontSize={15}>수정</Button>
                                     <Button height={7} fontSize={15}>삭제</Button>
                                 </Box>
+                                )}
                             </VStack>
                             
                             {comment.replies.map((reply) => (
@@ -61,10 +66,12 @@ export default function Comment(
                                                 <Text>{`${reply.created_at.substring(0,10)}, ${reply.created_at.substring(11,19)}`}</Text>
                                             </Box>
                                         </HStack>
+                                        {user && userLoading === false && user.username === reply.author.username && (
                                         <Box ml={"auto"}>
                                             <Button height={7} fontSize={15}>수정</Button>
                                             <Button height={7} fontSize={15}>삭제</Button>
                                         </Box>
+                                        )}
                                     </VStack>
                                 </Box>
                             ))}

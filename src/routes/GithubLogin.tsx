@@ -1,4 +1,4 @@
-import {Box, Button, Center, Heading, Spinner, Text, VStack} from "@chakra-ui/react";
+import {Box, Center, Heading, Spinner, Text, useToast, VStack} from "@chakra-ui/react";
 import {useLocation, useNavigate} from "react-router-dom";
 import {FaGithub} from "react-icons/fa";
 import { useEffect } from "react";
@@ -10,6 +10,7 @@ export default function GithubLogin() {
     const {search} = useLocation();
     const queryClient = useQueryClient();
     const navigate = useNavigate();
+    const toast = useToast();
     async function confirmLogin(){
         const params = new URLSearchParams(search);
         const code = params.get("code");
@@ -17,11 +18,17 @@ export default function GithubLogin() {
             const res = await githubLogin(code);
             if (res === 200){
                 queryClient.refetchQueries({queryKey:['me']});
-                alert("로그인 성공");
+                toast({
+                    title: "로그인 성공",
+                    status: "success",
+                })
                 navigate("/");
             }
             else{
-                alert("로그인 실패");
+                toast({
+                    title: "로그인 실패",
+                    status: "error",
+                })
                 navigate("/");
             }
         }

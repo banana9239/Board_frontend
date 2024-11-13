@@ -45,7 +45,12 @@ export default function CategoryList(
         boardData:IBoardProps[]
     }
 ) {
-    const {largePk, mediumPk, smallPk} = useParams();
+    const {loadLargePk, loadMediumPk, loadSmallPk} = useParams();
+
+    const largePk = loadLargePk || (largeData && largeData.length > 0 ? largeData[0].id : null);
+    const mediumPk = loadMediumPk || (mediumData && mediumData.length > 0 ? mediumData[0].id : null);
+    const smallPk = loadSmallPk || (smallData && smallData.length > 0 ? smallData[0].id : null);
+
     return (
         <Box mt={10} py={5} px={10}>
             <Grid borderBottom={"1px"} gap={2} templateColumns={"repeat(10, 1fr)"}>

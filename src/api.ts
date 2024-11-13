@@ -2,6 +2,7 @@
 import axios from "axios"
 import {QueryFunctionContext} from "@tanstack/react-query"
 import Cookies from "js-cookie";
+import { IForm } from "./components/LoginModal";
 
 
 
@@ -72,6 +73,54 @@ export const logOut = () => instance.post(
 export const githubLogin = (code:string) => instance.post(
     'users/github',
     {code},
+    {
+        headers: {
+            'X-CSRFToken': getCSRFToken(),
+        }
+    }
+).then(res => res.status);
+
+export interface IDefaultLoginProps {
+    username:string;
+    password:string;
+}
+export interface IDefaultLoginSuccess {
+    ok:string
+}
+export interface IDefaultLoginError {
+    error:string
+}
+
+export const defaultLogin = ({username, password}:IDefaultLoginProps) => instance.post(
+    'users/log-in',
+    {username, password},
+    {
+        headers: {
+            'X-CSRFToken': getCSRFToken(),
+        }
+    }
+).then(res => res.data);
+
+interface ISignUpProps {
+    username:string;
+    password:string;
+    email:string;
+    nickname:string;
+}
+
+export const signUp = ({username, password, email, nickname}:ISignUpProps) => instance.post(
+    'users/',
+    {username, password, email, nickname},
+    {
+        headers: {
+            'X-CSRFToken': getCSRFToken(),
+        }
+    }
+).then(res => res.data);
+
+export const checkUsername = async (username:string) => await instance.post(
+    'users/check-username',
+    {username},
     {
         headers: {
             'X-CSRFToken': getCSRFToken(),

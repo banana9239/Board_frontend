@@ -1,26 +1,56 @@
-import { Box, Button, HStack, IconButton, LightMode, Menu, MenuButton, MenuItem, MenuList, Text, useColorMode, useColorModeValue } from '@chakra-ui/react'
+import { Box, Button, HStack, IconButton, LightMode, Menu, MenuButton, MenuItem, MenuList, Text, ToastId, useColorMode, useColorModeValue, useToast } from '@chakra-ui/react'
 import { SiBillboard} from 'react-icons/si'
 import { PiBlueprintFill, PiBlueprintLight } from "react-icons/pi";
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { useDisclosure } from '@chakra-ui/react'
 import LoginModal from './LoginModal'
 import SignUpModal from './SignUpModal'
 import useUser from '../lib/useUser';
 import { BsPersonCircle } from "react-icons/bs";
 import { logOut } from '../api';
-import { useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useRef } from 'react';
 
 export default function Header() {
     const {isOpen:isLoginOpen, onClose:onLoginClose, onOpen:onLoginOpen} = useDisclosure();
     const {isOpen:isSignupOpen, onClose:onSignupClose, onOpen:onSignupOpen} = useDisclosure();
     const {toggleColorMode} = useColorMode();
     const Icon = useColorModeValue(PiBlueprintFill, PiBlueprintLight);
+    const toast = useToast();
+    const toastId = useRef<ToastId>();
     const {userLoading, user, isLogIn} = useUser();
     const queryClient = useQueryClient();
+    const navigate = useNavigate();
+    const mutation = useMutation({
+        mutationFn: logOut,
+        onMutate: () => {
+            toastId.current = toast({
+                title: "로그아웃 중..",
+                status: "info",
+            })
+        },
+        onSuccess: () => {
+            if(toastId.current){
+                queryClient.refetchQueries({queryKey:['me']});
+                toast.update(toastId.current, {
+                    title: "로그아웃 성공",
+                    status: "success",
+                })
+                navigate("/")
+            }
+
+        },
+        onError: () => {
+            if(toastId.current){
+                toast.update(toastId.current, {
+                title: "로그아웃 실패",
+                status: "error",
+                })
+            }
+        }
+    });
     async function logOutDo(){
-        await logOut();
-        queryClient.refetchQueries({queryKey:['me']});
-        alert("로그아웃 되었습니다.");
+        mutation.mutate();
     }
     
     return (

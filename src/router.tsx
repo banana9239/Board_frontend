@@ -8,10 +8,10 @@ import GithubLogin from "./routes/GithubLogin";
 const router = createBrowserRouter([
     {path: "/", element: <Root/>, errorElement:<NotFound/>, children: [
         {path: "", element: <Home/>},
-        {path: ":largePk", element: <Home/>},
-        {path: ":largePk/:mediumPk", element: <Home/>},
-        {path: ":largePk/:mediumPk/:smallPk", element: <Home/>},
-        {path: ":largePk/:mediumPk/:smallPk/:boardPk", element: <Home/>},
+        {path: ":loadLargePk", element: <Home/>},
+        {path: ":loadLargePk/:loadMediumPk", element: <Home/>},
+        {path: ":loadLargePk/:loadMediumPk/:loadSmallPk", element: <Home/>},
+        {path: ":loadLargePk/:loadMediumPk/:loadSmallPk/:loadBoardPk", element: <Home/>},
         {path: "post/:postPk", element: <Post/>},
         {path: "social",children:[
             {
