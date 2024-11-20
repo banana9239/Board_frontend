@@ -1,5 +1,6 @@
 import { Box, VStack, HStack, Text, Icon  } from "@chakra-ui/react";
 import { BsPersonCircle } from "react-icons/bs";
+import { Link } from "react-router-dom";
 
 interface IAuthorProps {
     name: string,
@@ -27,9 +28,11 @@ interface IPostProps {
 
 export default function PostDetail( 
     {
-        postData
+        postData,
+        beforeUrl,
     }:{
-        postData:IPostProps
+        postData:IPostProps,
+        beforeUrl:string
     } ) {
 
 
@@ -37,7 +40,7 @@ export default function PostDetail(
         <Box>
             {<VStack alignItems={"flex-start"}>
                 <Box pb={10} width={"100%"} borderBottomWidth={2}>
-                    <Box><Text fontSize={16}>{postData.board_name}</Text></Box>
+                    <Box><Link to={beforeUrl}><Text fontSize={16}>{postData.board_name}</Text></Link></Box>
                     <Box><Text fontSize={35}>{postData.title}</Text></Box>
                     <HStack width={"100%"}>
                         {/* 계정정보 */}

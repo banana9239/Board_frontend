@@ -4,6 +4,7 @@ import NotFound from "./routes/NotFound";
 import Home from "./routes/Home";
 import Post from "./routes/Post";
 import GithubLogin from "./routes/GithubLogin";
+import PostForm from "./routes/PostForm";
 
 const router = createBrowserRouter([
     {path: "/", element: <Root/>, errorElement:<NotFound/>, children: [
@@ -19,6 +20,7 @@ const router = createBrowserRouter([
                 element: <GithubLogin/>
             },
         ]},
+        {path: "post/editor", element: <PostForm/>},
     ]},
 ])
 

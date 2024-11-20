@@ -52,6 +52,12 @@ export async function getboards({queryKey}:QueryFunctionContext){
     return response.data;
 }
 
+export async function getboard({queryKey}:QueryFunctionContext){
+    const [_,boardPk] = queryKey;
+    const response = await instance.get(`boards/${boardPk}`)
+    return response.data;
+}
+
 export async function getComments({queryKey}:QueryFunctionContext){
     const [_, postPk] = queryKey;
     const response = await instance.get(`posts/${postPk}/comment`)
@@ -127,3 +133,44 @@ export const checkUsername = async (username:string) => await instance.post(
         }
     }
 ).then(res => res.status);
+
+interface IPostingProps {
+    title:string;
+    content:string;
+    sortation:string;
+    board:string;
+}
+
+export const posting = async (data:IPostingProps) => await instance.post(
+    'posts/',
+    {data},
+    {
+        headers: {
+            'X-CSRFToken': getCSRFToken(),
+        }
+    }
+).then(res => res.data);
+
+interface ICommentingProps {
+    content:string;
+    post_id:number;
+}
+
+export const commenting = async ({content, post_id}:ICommentingProps) => await instance.post(
+    `posts/${post_id}/comment`,
+    {content},
+    {
+        headers: {
+            'X-CSRFToken': getCSRFToken(),
+        }
+    }
+).then(res => res.data);
+
+export const commentDelete = async (comment_id:number) => await instance.delete(
+    `posts/comment/${comment_id}`,
+    {
+        headers: {
+            'X-CSRFToken': getCSRFToken(),
+        }
+    },
+).then(res => res.data);

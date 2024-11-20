@@ -1,9 +1,10 @@
-import { Box} from "@chakra-ui/react";
+import { Box, Button} from "@chakra-ui/react";
 import CategoryList from "../components/CategoryList";
 import { useQuery } from "@tanstack/react-query";
 import { getboards, getLargeCategories, getMediumCategories, getPosts, getSmallCategories } from "../api";
-import { useParams } from "react-router-dom";
+import { Link, useParams } from "react-router-dom";
 import PostList from "../components/PostList";
+import { useEffect, useState } from "react";
 
 
 export default function Home() {  
@@ -42,10 +43,31 @@ export default function Home() {
     enabled: !!boardPk
   });
   
+  var board_name = boardData && boardData.length > 0 ? boardData[0].board_name : "";
+
+  if(boardPk !== null && boardData){
+    for(let i=0; i<boardData.length; i++){
+      if(String(boardData[i].id) === boardPk){
+        board_name = boardData[i].board_name;
+      }
+    }
+  }
+  const [beforeUrl, setBeforeUrl] = useState("");
+  useEffect(() => {
+    setBeforeUrl(`/${largePk}/${mediumPk}/${smallPk}/${boardPk}`);
+  },[boardPk]);
+
   return (
     <Box>
       {!largeLoding && <CategoryList largeData={largeData} mediumData={mediumData} smallData={smallData} boardData={boardData}/> }
-      <PostList data={postData}/>
+      <PostList 
+        data={postData} 
+        board_name={board_name}
+        beforeUrl={beforeUrl}
+      />
+      <Box width={"100%"} display="flex" justifyContent="flex-end" py={5} px={10}>
+        <Link to={"/post/editor"} state={{boardPk:boardPk, }}><Button ml="auto">글쓰기</Button></Link>
+      </Box>
     </Box>
   );
 }

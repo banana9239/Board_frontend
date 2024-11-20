@@ -2,6 +2,10 @@ import { Box, Button, HStack, Icon, Text, Textarea, VStack } from '@chakra-ui/re
 import { BsPersonCircle } from "react-icons/bs";
 import { HiOutlineReply } from "react-icons/hi";
 import useUser from '../lib/useUser';
+import { useMutation } from '@tanstack/react-query';
+import { commentDelete, commenting } from '../api';
+import { useForm } from 'react-hook-form';
+import { useNavigate } from 'react-router-dom';
 
 interface IAuthorProps {
     name: string,
@@ -24,14 +28,52 @@ interface ICommentProps {
     replies: IReplyProps[]
 }
 
+interface ICommentFormProps {
+    content:string,
+    post_id:number
+}
+
 export default function Comment(
     {
-        commentData
+        commentData,
+        postId
     }:{
-        commentData:ICommentProps[]
+        commentData:ICommentProps[],
+        postId:number
     }) {
-
+    const {register, handleSubmit} = useForm<ICommentFormProps>();
     const {user, userLoading} = useUser();
+    const navagate  = useNavigate();
+    const commentDeleteMutation = useMutation({
+        mutationFn: commentDelete,
+        onSuccess: (data) => {
+            alert("삭제되었습니다.");
+            window.location.reload();
+        },
+        onError: (data) => {
+            alert(data);
+        }
+    })
+    const mutation = useMutation({
+        mutationFn: commenting,
+        onSuccess: (data) => {
+            alert("되었어!");
+            window.location.reload();
+        },
+        onError: (data) => {
+            alert(data);
+        }
+    })
+
+    const onSubmit = (data:ICommentFormProps) => {
+        data.post_id = postId;
+        mutation.mutate(data);
+    }
+
+    const deleteComment = (comment_id:number) => {
+        commentDeleteMutation.mutate(comment_id)
+        return () => {}
+    }
     
     return (
             <Box>
@@ -46,10 +88,10 @@ export default function Comment(
                                         <Text>{`${comment.created_at.substring(0,10)}, ${comment.created_at.substring(11,19)}`}</Text>
                                     </Box>
                                 </HStack>
-                                {user && userLoading === false && user.username === comment.author.username && (
+                                {user && user.username === comment.author.username && (
                                 <Box ml={"auto"}>
                                     <Button height={7} fontSize={15}>수정</Button>
-                                    <Button height={7} fontSize={15}>삭제</Button>
+                                    <Button onClick={() => deleteComment(comment.id)} height={7} fontSize={15}>삭제</Button>
                                 </Box>
                                 )}
                             </VStack>
@@ -66,7 +108,7 @@ export default function Comment(
                                                 <Text>{`${reply.created_at.substring(0,10)}, ${reply.created_at.substring(11,19)}`}</Text>
                                             </Box>
                                         </HStack>
-                                        {user && userLoading === false && user.username === reply.author.username && (
+                                        {user && user.username === reply.author.username && (
                                         <Box ml={"auto"}>
                                             <Button height={7} fontSize={15}>수정</Button>
                                             <Button height={7} fontSize={15}>삭제</Button>
@@ -77,10 +119,14 @@ export default function Comment(
                             ))}
                         </Box>
                     ))}
-                    <Box>
-                        <Textarea placeholder="댓글을 작성하세요..." />
-                        <Button mt={2}>댓글 작성</Button>
+                    {user ? (
+                    <Box as='form' onSubmit={handleSubmit(onSubmit)}>
+                        <Textarea {...register("content",{
+                            required:true
+                        })} placeholder="댓글을 작성하세요..." />
+                        <Button type='submit' mt={2}>댓글 작성</Button>
                     </Box>
+                    ):""}
                 </VStack>
             </Box>            
     );
