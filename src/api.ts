@@ -174,3 +174,24 @@ export const commentDelete = async (comment_id:number) => await instance.delete(
         }
     },
 ).then(res => res.data);
+
+export const isPostLikeDo = async (post_id:string) => await instance.get(`posts/${post_id}/like`).then(res => res.data);
+
+export const postLikeDo = async (post_id:string) => await instance.post(
+    `posts/${post_id}/like`,
+    null,
+    {
+        headers: {
+            'X-CSRFToken': getCSRFToken(),
+        }
+    },
+).then(res => res.data);
+
+export const postLikeDelete = async (post_id:string) => await instance.delete(
+    `posts/${post_id}/like`,
+    {
+        headers: {
+            'X-CSRFToken': getCSRFToken(),
+        }
+    },
+).then(res => res.data);
