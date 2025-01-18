@@ -1,9 +1,9 @@
-import { Box, Button, Input, Text, VStack, FormControl, FormHelperText, FormLabel, Textarea, Select, LightMode, Image  } from "@chakra-ui/react";
+import { Box, Button, Input, Text, VStack, FormControl, FormHelperText, FormLabel, Textarea, Select, LightMode, Image, InputGroup, InputRightElement  } from "@chakra-ui/react";
 import ProtectPage from "../components/ProtectPage";
-import { useForm } from "react-hook-form";
+import { set, useForm } from "react-hook-form";
 import useUser from "../lib/useUser";
 import { useMutation, useQuery } from "@tanstack/react-query";
-import { getboard, posting } from "../api";
+import { backUploadImage, getboard, getURL, posting, uploadImage } from "../api";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 
@@ -27,33 +27,83 @@ interface IBoardProps {
 type IImage = string[];
 
 export default function PostForm() {
-    const { register, handleSubmit } = useForm<IPostProps>();
-    
+    const { register, handleSubmit, watch, setValue } = useForm<IPostProps>();
+    let num = 0;
+    const [postPk, setPostPk] = useState<number>(0);
     const location = useLocation();
+    const [loading, setLoading] = useState<boolean>(false);
     const {boardPk} = location.state||null;
+    const {user} = useUser();
     const { data: boardData } = useQuery<IBoardProps>({
         queryKey: ["boards",boardPk], 
         queryFn: getboard,
         enabled: !!boardPk
     });
     
+    const imageProcess = async (i:number) => {
+        num = i;
+        return new Promise<void>((resolve, reject) => {
+            urlMutation.mutate();
+            resolve();
+        });
+    }
+
     const navigate = useNavigate();
     const mutation = useMutation({
         mutationFn: posting,
-        onSuccess: (data) => {
-            alert("되었어!");
-            console.log(data);
-            navigate(`/post/${data.id}`);
+        onSuccess: async (data) => {
+            setPostPk(data.id);
+            num = 0;
+            const fileCount = watch("file").length;
+            const imageTime = (4*fileCount*1000)+1000;
+            try {
+                const temp = await Promise.all(Array.from({ length: fileCount }, (_, i) => imageProcess(i)));
+                setTimeout(()=>navigate(`/post/${data.id}`),imageTime);
+            } catch (error) {
+                alert("이미지 업로드 중 오류가 발생했습니다.");
+            }
+            
         },
         onError: (data) => {
             alert(data);
         }
     })
+    
+    const urlMutation = useMutation({
+        mutationFn: getURL,
+        onSuccess: (data) => {
+            const file = watch("file")[num];
+            imageMutation.mutate({ file: file, url: data.result.uploadURL });
+        },
+    })
+    const imageMutation = useMutation({
+        mutationFn: uploadImage,
+        onSuccess: (data) => {
+            backMutation.mutate({
+                postPk: postPk,
+                image: `https://imagedelivery.net/5xm8vIkUK7gGW5P9F43X-Q/${data.result.id}/public`,
+                description: (document.getElementsByName("description" + String(num))[0] as HTMLTextAreaElement).value
+            });
 
+        },
+        onError: (data) => {
+            alert(data);
+        }
+
+    })
+    const backMutation = useMutation({
+        mutationFn: backUploadImage,
+        onSuccess: (data) => {
+            console.log(data);
+        }
+    })
     const onSubmit = (data: IPostProps) => {
         data.board = boardData?.id||"";
-        console.log(data);
+        setLoading(true);
         mutation.mutate(data)
+    }
+    const tempSubmit = () => {
+        urlMutation.mutate();
     }
 
     const [image, setImage] = useState<IImage>();
@@ -61,7 +111,7 @@ export default function PostForm() {
     const handleImage = (e: any) => {
         if (!e.target.files) return;
         const files = e.target.files;
-        console.log(e.target.files);
+        
         if (files){
             let images = [];
             for (let i=0; i<files.length; i++){
@@ -69,12 +119,18 @@ export default function PostForm() {
             }
             setImage(images);
         }
+        
+    }
+    const mediaReset = () => {
+        setImage([]);
+        const dataTransfer = new DataTransfer();
+        setValue("file", dataTransfer.files);
+        
     }
 
     useEffect(() => {
-        console.log(image);
+        
       },[image]);
-
     return (
         <ProtectPage>
             <Box py={5} px={10} width={"100%"} height={"400px"}>
@@ -87,7 +143,7 @@ export default function PostForm() {
                     </FormControl>
                     <FormControl>
                         <FormLabel>이름</FormLabel>
-                        <Input isDisabled value={"dff"}/> 
+                        <Input isDisabled value={`${user.nickname ? user.nickname : user.username}`}/> 
                     </FormControl>
                     <FormControl>
                         <FormLabel>제목</FormLabel>
@@ -100,11 +156,16 @@ export default function PostForm() {
                         <Textarea {...register("content",{
                             required:true
                         })}/>
-                        <Input mb={5} multiple type="file" accept="image/*" {...register("file", {})} onChange={handleImage}/>
+                        <InputGroup>
+                            <Input mb={5} multiple type="file" accept="image/*" {...register("file", {onChange: handleImage})}/>
+                            <InputRightElement>
+                                <Button onClick={mediaReset} size="sm">reset</Button>
+                            </InputRightElement>
+                        </InputGroup>
                         <Box >
-                        {image ? image.map((ima) => (<>
-                            <Image src={ima} width={"250px"} height={"250px"} alt="불만있냐?"/>
-                            <Textarea  mb={5} placeholder="미디어에 대한 설명을 쓰시오."/>
+                        {image ? image.map((ima, index) => (<>
+                            <Image src={ima} maxWidth={"250px"} alt="불만있냐?"/>
+                            <Textarea name={"description"+String(index)} mb={5} placeholder={"미디어에 대한 설명을 쓰시오."}/>
                             </>)):""}
                         </Box>
                     </FormControl>
@@ -125,6 +186,7 @@ export default function PostForm() {
                             colorScheme={"red"}
                             size="lg"
                             w="100%"
+                            isLoading={loading}
                             >
                             posting!
                         </Button>

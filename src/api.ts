@@ -195,3 +195,30 @@ export const postLikeDelete = async (post_id:string) => await instance.delete(
         }
     },
 ).then(res => res.data);
+
+export const getURL = () => instance.post('medias/get-url', null, {
+    headers: {
+        'X-CSRFToken': getCSRFToken(),
+    }
+}).then(res => res.data);
+
+export const uploadImage = ({file, url}:{file:any, url:string}) => {
+    const formData = new FormData();
+    formData.append('file', file);
+    return axios.post(url, formData).then(res => res.data);
+}
+
+export const backUploadImage = async ({postPk, image, description}:{postPk:number, image:string, description:string}) => await instance.post(
+    `medias/${postPk}/imageUpload`,
+    {image,description},
+    {
+        headers: {
+            'X-CSRFToken': getCSRFToken(),
+        }
+    }
+).then(res => res.data);
+
+export async function getImages({queryKey}:QueryFunctionContext){
+    const [_, postPk] = queryKey;
+    const response = await instance.get(`medias/${postPk}/getImages`)
+    return response.data;}

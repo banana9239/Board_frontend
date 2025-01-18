@@ -1,6 +1,9 @@
-import { Box, VStack, HStack, Text, Icon  } from "@chakra-ui/react";
+import { Box, VStack, HStack, Text, Icon, Image  } from "@chakra-ui/react";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { BsPersonCircle } from "react-icons/bs";
-import { Link } from "react-router-dom";
+import { Link, useParams } from "react-router-dom";
+import { getImages } from "../api";
+import { useEffect } from "react";
 
 interface IAuthorProps {
     name: string,
@@ -25,6 +28,17 @@ interface IPostProps {
     comment_count: number
 }
 
+interface IPhotoProps {
+    id: number,
+    created_at: string,
+    updated_at: string,
+    image: string,
+    description: string,
+    is_deleted: boolean,
+    post: number
+    authotr: number
+}
+
 
 export default function PostDetail( 
     {
@@ -34,8 +48,14 @@ export default function PostDetail(
         postData:IPostProps,
         beforeUrl:string
     } ) {
-
-
+    const {postPk} = useParams();
+    const {isLoading, data:photos} = useQuery({
+        queryKey: ["medias", postPk], 
+        queryFn: getImages
+      });
+    useEffect(() => {
+        
+    }, [photos])
     return (
         <Box>
             {<VStack alignItems={"flex-start"}>
@@ -58,7 +78,17 @@ export default function PostDetail(
                     </HStack>
                 </Box>
                 <Box mt={2}>
-                    {postData.content}
+                    <Text mb={2}>
+                        {postData.content}
+                    </Text>
+                    {photos?.map((photo:IPhotoProps, index:number) => {
+                        return (
+                            <>
+                            <Image mb={2} src={photo.image} alt={photo.description} maxW={"500px"} maxH={"400px"}/>
+                            <Text mb={2}>{photo.description}</Text>
+                            </>
+                        )
+                    })}
                 </Box>
             </VStack>}
         </Box>

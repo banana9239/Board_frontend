@@ -1,4 +1,4 @@
-import { Box, Button, Text} from "@chakra-ui/react";
+import { Box, Button, HStack, LinkOverlay, Text, Link as CLink} from "@chakra-ui/react";
 import CategoryList from "../components/CategoryList";
 import { useQuery } from "@tanstack/react-query";
 import { getboards, getLargeCategories, getMediumCategories, getPosts, getSmallCategories } from "../api";
@@ -38,7 +38,7 @@ export default function Home() {
   });
   const boardPk = loadBoardPk || (boardData && boardData.length > 0 ? boardData[0].id : null);
 
-  const {data:postData} = useQuery({
+  const {isLoading:postLoading,data:postData} = useQuery({
     queryKey: ['posts', largePk, mediumPk, smallPk, boardPk], 
     queryFn: getPosts,
     enabled: !!boardPk
@@ -56,37 +56,45 @@ export default function Home() {
   const [beforeUrl, setBeforeUrl] = useState("");
 
   const [pageSize, setPageSize] = useState(5);
-  const [count, setCount] = useState(50);
   const [page, setPage] = useState(1)
-  const items = new Array(count).fill(0).map((_, index) => `Lorem ipsum dolor sit amet ${index + 1}`)
+  const totalPages = postData ? (postData.length/pageSize) % 1 != 0 ? (postData.length/pageSize)+1 : postData.length/pageSize : 0;
 
   const startRange = (page - 1) * pageSize
   const endRange = startRange + pageSize
 
-  const visibleItems = items.slice(startRange, endRange);
+  const visibleItems = postData ? postData.slice(startRange, endRange):[];
 
   const {user} = useUser();
 
+  const pageClick = (page:number) => {
+    setPage(page+1);
+  }
+
   useEffect(() => {
     setBeforeUrl(`/${largePk}/${mediumPk}/${smallPk}/${boardPk}`);
-
-    
   },[boardPk]);
   
 
   return (
     <Box>
       {!largeLoding && <CategoryList largeData={largeData} mediumData={mediumData} smallData={smallData} boardData={boardData}/> }
+      {postData ? 
       <PostList 
-        data={postData} 
+        data={visibleItems} 
         board_name={board_name}
         beforeUrl={beforeUrl}
+        startNum={startRange}
       />
+      :<Box py={5} px={10}><Text textAlign={"center"} width="100%" overflowX={"auto"}>게시판이 존재하지 않습니다.</Text></Box>}
+      
       <Box py={5} px={10} width="100%">
-      {visibleItems.map((item, index) => {
-        return (<>
-          <Text display="flex" justifyContent="flex-end">{index}</Text>
-          </>)})}
+        <HStack justifyContent={"center"} spacing={4}>
+        {Array.from({length:totalPages}, (_, index) => {
+          return (<>
+          {page==index+1 ? <Button color={"red"} onClick={()=>pageClick(index)} mr={"-6px"} ml={"-6px"} variant={"plain"}>{index+1}</Button> 
+          :<Button onClick={()=>pageClick(index)} mr={"-6px"} ml={"-6px"} variant={"plain"}>{index+1}</Button>}
+            </>)})}
+          </HStack>
       </Box>
       <Box width={"100%"} display="flex" justifyContent="flex-end" py={5} px={10}>
         {!user ? "":<Link to={"/post/editor"} state={{boardPk:boardPk, }}><Button ml="auto">글쓰기</Button></Link>}

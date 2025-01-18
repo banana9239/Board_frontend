@@ -57,7 +57,6 @@ export default function Comment(
     const mutation = useMutation({
         mutationFn: commenting,
         onSuccess: (data) => {
-            alert("되었어!");
             window.location.reload();
         },
         onError: (data) => {
